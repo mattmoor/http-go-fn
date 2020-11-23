@@ -1,0 +1,8 @@
+[buildpack]
+uri = "buildpacks/"
+
+# [[dependencies]]
+# uri = "samples/buildpacks/hello-moon"
+
+# [[dependencies]]
+# image = "cnbs/sample-package:hello-world"

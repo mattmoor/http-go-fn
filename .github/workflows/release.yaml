@@ -1,0 +1,72 @@
+on:
+  # Allow manually triggering this.
+  workflow_dispatch: {}
+
+  push:
+    # For development
+    branches: [ "main" ]
+
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+name: Create Release
+
+jobs:
+
+  ko-resolve:
+    name: Release buildpackage
+    runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on
+
+    steps:
+    - name: Set up Go 1.15.x
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.15.x
+
+    - name: Construct buildpackage name and authenticate
+      shell: bash
+      run: |
+        TAG=$(basename ${{ github.ref }})
+        echo BUILDPACKAGE=ghcr.io/${{ github.repository}}:${TAG} >> $GITHUB_ENV
+
+        # PERSONAL_ACCESS_TOKEN was created via the following workflow:
+        # https://docs.github.com/en/free-pro-team@latest/packages/getting-started-with-github-container-registry/migrating-to-github-container-registry-for-docker-images#authenticating-with-the-container-registry
+        USER=$(dirname ${{ github.repository }})
+        docker login ghcr.io -u ${USER} -p ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+    - name: Install Dependencies
+      shell: bash
+      run: |
+        echo '::group:: install pack'
+        # From https://buildpacks.io/docs/tools/pack/
+        curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.15.0/pack-v0.15.0-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
+        echo '::endgroup::'
+
+    - name: Check out code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+
+    - name: Build buildpackage
+      run: |
+        # When running in a release tag, replace the 0.0.0 dev version with the version in the tag.
+        if [[ "${{ github.ref }}" =~ "refs/tags/v" ]]; then
+          TAG=$(basename ${{ github.ref }})
+          sed -i "s/0.0.0/${TAG:1}/g" $(find buildpacks/ -name 'buildpack.toml')
+        fi
+        pack package-buildpack ${BUILDPACKAGE} --config ./package.toml
+        docker push ${BUILDPACKAGE}
+
+    # Only create releases for tags.
+    - name: Create Release
+      if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: true

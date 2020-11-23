@@ -1,0 +1,13 @@
+# Buildpack API version
+api = "0.2"
+
+# Buildpack ID and metadata
+[buildpack]
+id = "hello-buildpacks"
+version = "0.0.0"
+name = "Buildpack Template"
+homepage = "https://github.com/mattmoor/hello-buildpacks"
+
+# Stacks that the buildpack will work with
+[[stacks]]
+id = "io.buildpacks.stacks.bionic"

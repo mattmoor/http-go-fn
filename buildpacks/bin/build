@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+echo "---> Buildpack Template"
+
+# INPUT ARGUMENTS
+layers_dir="$1"
+platform_dir="$2"
+env_dir="${platform_dir}/env"
+plan_path="$3"
+
+# PLATFORM DIR
+echo "     platform_dir files:"
+ls -alR "${platform_dir}" | sed 's/^/       /'
+
+# ENV VARS
+echo "     env_dir: ${env_dir}"
+echo "     env vars:"
+env | sed 's/^/       /'
+if compgen -G "${env_dir}/*" > /dev/null; then
+  for var in ${env_dir}/*; do
+    declare "$(basename ${var})=$(<${var})"
+  done
+fi
+
+# LAYERS
+echo "     layers_dir: ${layers_dir}"
+
+# PLAN
+echo "     plan_path: ${plan_path}"
+echo "     plan contents:"
+cat ${plan_path} | sed 's/^/       /'
+echo
+
+echo "---> Done"
