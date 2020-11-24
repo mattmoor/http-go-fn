@@ -1,3 +1,12 @@
+# github.com/BurntSushi/toml v0.3.1
+github.com/BurntSushi/toml
+# github.com/kelseyhightower/envconfig v1.4.0
+## explicit
+github.com/kelseyhightower/envconfig
+# github.com/paketo-buildpacks/packit v0.4.0
+## explicit
+github.com/paketo-buildpacks/packit
+github.com/paketo-buildpacks/packit/internal
 # github.com/vaikas/buildpackstuffhttp v0.0.0-20201124004001-f044c7648582
 ## explicit
 github.com/vaikas/buildpackstuffhttp/cmd/detect
