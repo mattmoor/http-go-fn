@@ -31,3 +31,18 @@ func Handler(w http.ResponseWriter, r *http.Request) {
      fmt.Fprintf(w, "Hello World, %#v", r)
 }
 ```
+
+# Configuration
+
+You can configure both the package containing the function and the name of
+the function via the following configuration options in `project.toml`:
+
+```toml
+[[build.env]]
+name = "HTTP_GO_PACKAGE"
+value = "./blah"
+
+[[build.env]]
+name = "HTTP_GO_FUNCTION"
+value = "MyCustomHandlerName"
+```
