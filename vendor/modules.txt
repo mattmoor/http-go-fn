@@ -1,14 +1,31 @@
 # github.com/BurntSushi/toml v0.3.1
 github.com/BurntSushi/toml
+# github.com/VividCortex/ewma v1.1.1
+github.com/VividCortex/ewma
+# github.com/cheggaaa/pb/v3 v3.0.5
+github.com/cheggaaa/pb/v3
+github.com/cheggaaa/pb/v3/termutil
+# github.com/fatih/color v1.9.0
+github.com/fatih/color
 # github.com/kelseyhightower/envconfig v1.4.0
 ## explicit
 github.com/kelseyhightower/envconfig
+# github.com/mattn/go-colorable v0.1.4
+github.com/mattn/go-colorable
+# github.com/mattn/go-isatty v0.0.12
+github.com/mattn/go-isatty
+# github.com/mattn/go-runewidth v0.0.8
+github.com/mattn/go-runewidth
 # github.com/paketo-buildpacks/packit v0.4.0
 ## explicit
 github.com/paketo-buildpacks/packit
 github.com/paketo-buildpacks/packit/internal
+github.com/paketo-buildpacks/packit/scribe
 # github.com/vaikas/gofunctypechecker v0.0.0-20201124220306-6636ad28e8e8
 ## explicit
 github.com/vaikas/gofunctypechecker/pkg/detect
 # golang.org/x/net v0.0.0-20201021035429-f5854403a974
 ## explicit
+# golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f
+golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/unix

@@ -2,26 +2,29 @@ package function
 
 import (
 	"errors"
-	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/paketo-buildpacks/packit"
+	"github.com/paketo-buildpacks/packit/scribe"
 )
 
 type Builder struct {
-	// TODO(mattmoor): envconfig
+	Logger scribe.Logger
 }
 
 const targetPackage = "./http-cmd/function"
 
 func (b *Builder) Build(bctx packit.BuildContext) (packit.BuildResult, error) {
+	b.Logger.Title("%s %s", bctx.BuildpackInfo.Name, bctx.BuildpackInfo.Version)
+	defer b.Logger.Break()
+
 	pkg, fn, err := b.getPkgFn(bctx)
 	if err != nil {
 		return packit.BuildResult{}, err
 	}
-	log.Print("Package: ", pkg)
-	log.Print("Function: ", fn)
+	b.Logger.Process("Package:  %s", pkg)
+	b.Logger.Process("Function: %s", fn)
 
 	if err := os.MkdirAll(filepath.Join(bctx.WorkingDir, targetPackage), os.ModePerm); err != nil {
 		return packit.BuildResult{}, err
