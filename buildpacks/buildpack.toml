@@ -3,10 +3,10 @@ api = "0.2"
 
 # Buildpack ID and metadata
 [buildpack]
-id = "hello-buildpacks"
+id = "http-go-fn"
 version = "0.0.0"
-name = "Buildpack Template"
-homepage = "https://github.com/mattmoor/hello-buildpacks"
+name = "HTTP Go Function"
+homepage = "https://github.com/mattmoor/http-go-fn"
 
 # Stacks that the buildpack will work with
 [[stacks]]

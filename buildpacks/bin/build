@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-echo "---> Buildpack Template"
+echo "HTTP Go Function Buildpack"
 
 # INPUT ARGUMENTS
 layers_dir="$1"
@@ -9,27 +9,50 @@ platform_dir="$2"
 env_dir="${platform_dir}/env"
 plan_path="$3"
 
-# PLATFORM DIR
-echo "     platform_dir files:"
-ls -alR "${platform_dir}" | sed 's/^/       /'
+# Extract the package name from the plan.
+PACKAGE=$(cat ${plan_path} | \
+	      yj -tj | \
+	      jq -r '.entries | map(select(.name=="http-go-function")) | .[0].metadata.package')
+FUNCTION=$(cat ${plan_path} | \
+	      yj -tj | \
+	      jq -r '.entries | map(select(.name=="http-go-function")) | .[0].metadata.function')
 
-# ENV VARS
-echo "     env_dir: ${env_dir}"
-echo "     env vars:"
-env | sed 's/^/       /'
-if compgen -G "${env_dir}/*" > /dev/null; then
-  for var in ${env_dir}/*; do
-    declare "$(basename ${var})=$(<${var})"
-  done
-fi
+echo "  Package  -> ${PACKAGE}"
+echo "  Function -> ${FUNCTION}"
 
-# LAYERS
-echo "     layers_dir: ${layers_dir}"
+mkdir -p ./http-cmd/function
+cat > ./http-cmd/function/main.go <<EOF
+package main
 
-# PLAN
-echo "     plan_path: ${plan_path}"
-echo "     plan contents:"
-cat ${plan_path} | sed 's/^/       /'
+import (
+       "fmt"
+	"log"
+	"net/http"
+	"os"
+
+        p "${PACKAGE}"
+)
+
+func main() {
+	http.HandleFunc("/", p.${FUNCTION})
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+}
+
+EOF
+
+LAYER="${layers_dir}/${RANDOM}"
+# Designate this layer as a "build layer"
+cat > "${LAYER}.toml" <<EOF
+build = true
+EOF
+# Add an environment variable for subsequent steps.
+mkdir -p "${LAYER}/env.build"
+echo -n ./http-cmd/function > "${LAYER}/env.build/BP_GO_TARGETS.override"
+
 echo
-
-echo "---> Done"
