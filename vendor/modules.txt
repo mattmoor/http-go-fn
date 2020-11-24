@@ -7,7 +7,8 @@ github.com/kelseyhightower/envconfig
 ## explicit
 github.com/paketo-buildpacks/packit
 github.com/paketo-buildpacks/packit/internal
-# github.com/vaikas/buildpackstuffhttp v0.0.0-20201124004001-f044c7648582
+# github.com/vaikas/gofunctypechecker v0.0.0-20201124220306-6636ad28e8e8
 ## explicit
-github.com/vaikas/buildpackstuffhttp/cmd/detect
-github.com/vaikas/buildpackstuffhttp/pkg/detect
+github.com/vaikas/gofunctypechecker/pkg/detect
+# golang.org/x/net v0.0.0-20201021035429-f5854403a974
+## explicit

@@ -1,4 +1,3 @@
 *~
 
-buildpacks/bin/build
-buildpacks/bin/detect
+buildpacks/bin/*
