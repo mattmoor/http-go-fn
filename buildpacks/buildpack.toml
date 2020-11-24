@@ -3,7 +3,7 @@ api = "0.2"
 
 # Buildpack ID and metadata
 [buildpack]
-id = "http-go-fn"
+id = "io.mattmoor.http.golang.functions"
 version = "0.0.0"
 name = "HTTP Go Function"
 homepage = "https://github.com/mattmoor/http-go-fn"
