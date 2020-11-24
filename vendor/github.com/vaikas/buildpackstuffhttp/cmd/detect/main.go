@@ -75,6 +75,9 @@ func main() {
 	log.Println("Using relative path to look for function: ", goPackage)
 
 	goFunction := os.Getenv("HTTP_GO_FUNCTION")
+	if goFunction == "" {
+		goFunction = "Handler"
+	}
 
 	planFileName := os.Args[2]
 	log.Println("using plan file: ", planFileName)
