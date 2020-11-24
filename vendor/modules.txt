@@ -1,3 +1,4 @@
 # github.com/vaikas/buildpackstuffhttp v0.0.0-20201124004001-f044c7648582
+## explicit
 github.com/vaikas/buildpackstuffhttp/cmd/detect
 github.com/vaikas/buildpackstuffhttp/pkg/detect
