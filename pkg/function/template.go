@@ -32,7 +32,7 @@ func main() {
 		port = "8080"
 	}
 	server := &http.Server{
-		Addr: fmt.Sprintf(":%s", port),
+		Addr: fmt.Sprint(":", port),
 		Handler: http.HandlerFunc(p.{{.Function}}),
 	}
 
