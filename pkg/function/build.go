@@ -53,8 +53,8 @@ func (b *Builder) Build(bctx packit.BuildContext) (packit.BuildResult, error) {
 
 	return packit.BuildResult{
 		Layers: []packit.Layer{{
-			Name:  "http-go-funtion-cmd",
-			Path:  filepath.Join(bctx.Layers.Path, "http-go-funtion-cmd"),
+			Name:  "http-go-function-cmd",
+			Path:  filepath.Join(bctx.Layers.Path, "http-go-function-cmd"),
 			Build: true,
 			BuildEnv: packit.Environment{
 				"BP_GO_TARGETS.override": targetPackage,
