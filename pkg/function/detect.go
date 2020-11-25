@@ -13,8 +13,17 @@ import (
 	"github.com/vaikas/gofunctypechecker/pkg/detect"
 )
 
+// Detector is a stateful implementation of packit.DetectFunc to implement
+// the detect phase of a Paketo buildpack.  It is expected to be initialized
+// from the environment via Kelsey's envconfig library.
 type Detector struct {
-	Package  string `envconfig:"HTTP_GO_PACKAGE" default:"."`
+
+	// Package holds the name of the user-configured Go package containing
+	// an HTTP function.
+	Package string `envconfig:"HTTP_GO_PACKAGE" default:"."`
+
+	// Function holds the name of the http.HandlerFunc in Package that this
+	// buildpack should wrap in HTTP scaffolding.
 	Function string `envconfig:"HTTP_GO_FUNCTION" default:"Handler"`
 }
 
@@ -34,6 +43,7 @@ var (
 	detector = detect.NewDetector(validFunctions)
 )
 
+// Detect is a member function that implements packit.DetectFunc
 func (d *Detector) Detect(dctx packit.DetectContext) (packit.DetectResult, error) {
 	moduleName, err := readModuleName(dctx)
 	if err != nil {
@@ -96,7 +106,7 @@ func (d *Detector) checkFunction(dctx packit.DetectContext, pkg, fn string) erro
 		return nil
 	}
 
-	return fmt.Errorf("Unable to find function %q in %q with matching signature.", fn, pkg)
+	return fmt.Errorf("unable to find function %q in %q with matching signature", fn, pkg)
 }
 
 // readModuleName is a terrible hack for yanking the module from go.mod file.

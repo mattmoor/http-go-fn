@@ -9,12 +9,16 @@ import (
 	"github.com/paketo-buildpacks/packit/scribe"
 )
 
+// Builder is a stateful implementation of packit.BuildFunc to implement
+// the build phase of a Paketo buildpack.
 type Builder struct {
+	// Logger is used to emit waypoints through the build phase of th elifecycle.
 	Logger scribe.Logger
 }
 
 const targetPackage = "./http-cmd/function"
 
+// Build is a member function that implements packit.BuildFunc
 func (b *Builder) Build(bctx packit.BuildContext) (packit.BuildResult, error) {
 	b.Logger.Title("%s %s", bctx.BuildpackInfo.Name, bctx.BuildpackInfo.Version)
 	defer b.Logger.Break()
@@ -67,5 +71,5 @@ func (b *Builder) getPkgFn(bctx packit.BuildContext) (string, string, error) {
 		return entry.Metadata["package"].(string), entry.Metadata["function"].(string), nil
 	}
 
-	return "", "", errors.New("Missing metadata for http-go-function")
+	return "", "", errors.New("missing metadata for http-go-function")
 }
