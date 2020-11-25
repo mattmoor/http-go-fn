@@ -13,6 +13,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"strings"
+	"time"
 
         p "{{.Package}}"
 )
@@ -27,13 +29,36 @@ func main() {
 		cancel()
 	}()
 
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		// If we get requests from the kubelet's prober logic, handle it so
+		// the user function doesn't have to.
+		if strings.HasPrefix(r.Header.Get("User-Agent"), "kube-probe/") {
+			select {
+				// If we've received the termination signal, then start
+				// to fail readiness probes to drain traffic away from
+				// this replica.
+				case <-ctx.Done():
+					http.Error(w, "shutting down", http.StatusServiceUnavailable)
+
+				// Otherwise, start to pass readiness probes as soon as
+				// we are able to invoke the user function.
+				default:
+					w.WriteHeader(http.StatusOK)
+			}
+		} else {
+			// If there is no kubelet probe header, then pass requests along
+			// to the user function.
+			p.{{.Function}}(w, r)
+		}
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 	server := &http.Server{
 		Addr: fmt.Sprint(":", port),
-		Handler: http.HandlerFunc(p.{{.Function}}),
+		Handler: http.HandlerFunc(fn),
 	}
 
 	// Start the server in a go routine, so that we can monitor for shutdown and gracefully
@@ -44,11 +69,16 @@ func main() {
 		}
 	}()
 
-	// When the context is cancelled we got a SIGTERM, so drain HTTP requests.
-	// Don't use ctx because it is already closed!
-	// TODO(mattmoor): Add a built-in readiness probe handler that starts failing when
-	// ctx is cancelled for ~30s before calling Shutdown.
+	// When the context is cancelled we got a SIGTERM, which means that we will start to
+	// fail readiness probes, and as this is observed by the orchestration layer, traffic
+	// will migrate elsewhere.
 	<-ctx.Done()
+
+	// After a grace period, stop accepting new connections, and wait for outstanding
+	// requests to complete.
+	time.Sleep(30 * time.Second)
+
+	// Don't use ctx because it is already closed!
 	log.Fatal(server.Shutdown(context.Background()))
 }
 `
