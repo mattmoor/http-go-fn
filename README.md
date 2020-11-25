@@ -22,8 +22,15 @@ pack package-buildpack my-buildpack --config ./package.toml
 # Use this buildpack
 
 ```shell
-# See also latest release badge above.
-pack build blah --buildpack ghcr.io/mattmoor/http-go-fn:main
+# This runs the http-go-fn buildpack at HEAD within the Paketo Go order.
+# You can pin to a release by replacing ":main" below with a release tag
+# e.g. ":v0.0.1"
+pack build -v test-container \
+  --pull-policy if-not-present \
+  --buildpack gcr.io/paketo-buildpacks/go-dist:0.2.5 \
+  --buildpack ghcr.io/mattmoor/http-go-fn:main \
+  --buildpack gcr.io/paketo-buildpacks/go-mod-vendor:0.0.169 \
+  --buildpack gcr.io/paketo-buildpacks/go-build:0.1.2
 ```
 
 
