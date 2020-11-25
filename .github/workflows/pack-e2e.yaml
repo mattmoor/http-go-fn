@@ -37,7 +37,9 @@ jobs:
 
     - name: Build and Test the buildpackage
       run: |
+        echo '::group:: buildpack build'
         ./hack/build.sh dev.local/http-go-fn:latest --config ./package.toml
+        echo '::endgroup::'
 
         # Set up a magic number to ensure we are getting fresh builds (paranoia)
         MAGIC_NUMBER="${RANDOM}"
@@ -55,7 +57,13 @@ jobs:
         import (
            "fmt"
            "net/http"
+           "time"
         )
+
+        // Simulate startup delay
+        func init() {
+          time.Sleep(5 * time.Second)
+        }
 
         func Handler(w http.ResponseWriter, r *http.Request) {
            fmt.Fprintf(w, "Hello %d", ${MAGIC_NUMBER})
@@ -66,22 +74,60 @@ jobs:
         pack set-default-builder docker.io/paketobuildpacks/builder:full
 
         # Build the buildpack
+        echo '::group:: pack build'
         pack build -v test-container \
           --pull-policy if-not-present \
           --buildpack gcr.io/paketo-buildpacks/go-dist:0.2.5 \
           --buildpack dev.local/http-go-fn:latest \
           --buildpack gcr.io/paketo-buildpacks/go-mod-vendor:0.0.169 \
           --buildpack gcr.io/paketo-buildpacks/go-build:0.1.2
+        echo '::endgroup::'
 
-        docker run -d -p 8080:8080 test-container
+        # Capture the container ID to stop it below and simulate shutdown.
+        ID=$(docker run -d -p 8080:8080 test-container)
 
-        # Wait for it to come up.
-        # TODO(mattmoor): Simulate K8s health checks.
-        sleep 30
+        echo '::group:: startup probe'
+        while true
+        do
+          PROBE=1
+          curl -v -H "User-Agent: kube-probe/im-a-test" http://localhost:8080 || PROBE=0
 
+          if [[ "$PROBE" == "1" ]]; then
+            break
+          fi
+        done
+        echo '::endgroup::'
+
+        echo '::group:: check request'
         RESULT=$(curl -v http://localhost:8080)
-
         if [[ "Hello ${MAGIC_NUMBER}" != "${RESULT}" ]]; then
           echo "Got: ${RESULT}, wanted: ${MAGIC_NUMBER}"
           exit 1
         fi
+        echo '::endgroup::'
+
+        # Instruct docker to issue a SIGTERM, and give it 60s before the SIGKILL.
+        echo '::group:: check lame duck'
+        docker stop -t 60 "${ID}" &
+        sleep 1 # Wait a small delay for the above
+
+        # Probes should start to fail immediately.
+        PROBE=0
+        curl -v -H "User-Agent: kube-probe/im-a-test" http://localhost:8080 || PROBE=1
+        if [[ "$PROBE" == "1" ]]; then
+          echo Probe succeeded, wanted failure after SIGTERM.
+        fi
+        echo '::endgroup::'
+
+        echo '::group:: requests while draining'
+        # Issue 20 requests spaced a second apart to ensure that things successfully
+        # serve after probes start failing.
+        for x in $(seq 1 1 20); do
+          RESULT=$(curl -v http://localhost:8080)
+          if [[ "Hello ${MAGIC_NUMBER}" != "${RESULT}" ]]; then
+            echo "Got: ${RESULT}, wanted: ${MAGIC_NUMBER}"
+            exit 1
+          fi
+          sleep 1
+        done
+        echo '::endgroup::'
