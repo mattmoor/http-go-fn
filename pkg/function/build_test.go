@@ -21,8 +21,8 @@ func TestBuild(t *testing.T) {
 	)
 	wantBuildPlan := packit.BuildResult{
 		Layers: []packit.Layer{{
-			Name:  "http-go-funtion-cmd",
-			Path:  filepath.Join(layersPath, "http-go-funtion-cmd"),
+			Name:  "http-go-function-cmd",
+			Path:  filepath.Join(layersPath, "http-go-function-cmd"),
 			Build: true,
 			BuildEnv: packit.Environment{
 				"BP_GO_TARGETS.override": targetPackage,
