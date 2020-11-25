@@ -1,0 +1,87 @@
+name: Pack e2e tests
+
+on:
+  pull_request:
+    branches: [ 'main' ]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+
+  e2e-tests:
+    name: e2e tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # Keep running if one leg fails.
+
+    env:
+      GO111MODULE: on
+
+    steps:
+    - name: Set up Go 1.15.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.15.x
+
+    - name: Install Dependencies
+      run: |
+        echo '::group:: install pack'
+        # From https://buildpacks.io/docs/tools/pack/
+        curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.14.0/pack-v0.14.0-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
+        echo '::endgroup::'
+
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Build and Test the buildpackage
+      run: |
+        ./hack/build.sh dev.local/http-go-fn:latest --config ./package.toml
+
+        # Set up a magic number to ensure we are getting fresh builds (paranoia)
+        MAGIC_NUMBER="${RANDOM}"
+
+        # Set up the sample from the README
+        pushd $(mktemp -d)
+        cat > go.mod <<EOF
+        module mattmoor.io/http-go-test
+
+        go 1.14
+        EOF
+        cat > fn.go <<EOF
+        package fn
+
+        import (
+           "fmt"
+           "net/http"
+        )
+
+        func Handler(w http.ResponseWriter, r *http.Request) {
+           fmt.Fprintf(w, "Hello %d", ${MAGIC_NUMBER})
+        }
+        EOF
+
+        # Use the Paketo builder
+        pack set-default-builder docker.io/paketobuildpacks/builder:full
+
+        # Build the buildpack
+        pack build -v test-container \
+          --pull-policy if-not-present \
+          --buildpack gcr.io/paketo-buildpacks/go-dist:0.2.5 \
+          --buildpack dev.local/http-go-fn:latest \
+          --buildpack gcr.io/paketo-buildpacks/go-mod-vendor:0.0.169 \
+          --buildpack gcr.io/paketo-buildpacks/go-build:0.1.2
+
+        docker run -d -p 8080:8080 test-container
+
+        # Wait for it to come up.
+        # TODO(mattmoor): Simulate K8s health checks.
+        sleep 30
+
+        RESULT=$(curl -v http://localhost:8080)
+
+        if [[ "Hello ${MAGIC_NUMBER}" != "${RESULT}" ]]; then
+          echo "Got: ${RESULT}, wanted: ${MAGIC_NUMBER}"
+          exit 1
+        fi
