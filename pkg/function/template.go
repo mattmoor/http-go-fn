@@ -16,6 +16,9 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
+
         p "{{.Package}}"
 )
 
@@ -58,7 +61,7 @@ func main() {
 	}
 	server := &http.Server{
 		Addr: fmt.Sprint(":", port),
-		Handler: http.HandlerFunc(fn),
+		Handler: h2c.NewHandler(http.HandlerFunc(fn), &http2.Server{}),
 	}
 
 	// Start the server in a go routine, so that we can monitor for shutdown and gracefully
