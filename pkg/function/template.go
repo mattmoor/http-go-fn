@@ -79,7 +79,9 @@ func main() {
 	time.Sleep(30 * time.Second)
 
 	// Don't use ctx because it is already closed!
-	log.Fatal(server.Shutdown(context.Background()))
+	if err := server.Shutdown(context.Background()); err != nil {
+		log.Fatal(err)
+	}
 }
 `
 
