@@ -70,8 +70,9 @@ jobs:
         }
         EOF
 
-        # Use the Paketo builder
-        pack set-default-builder docker.io/paketobuildpacks/builder:full
+        # Use the tiny Paketo builder, which is the smallest
+        # (and should be the most unforgiving).
+        pack set-default-builder docker.io/paketobuildpacks/builder:tiny
 
         # Build the buildpack
         echo '::group:: pack build'
