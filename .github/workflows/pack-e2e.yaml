@@ -29,7 +29,7 @@ jobs:
       run: |
         echo '::group:: install pack'
         # From https://buildpacks.io/docs/tools/pack/
-        curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.14.0/pack-v0.14.0-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
+        curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.15.0/pack-v0.15.0-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
         echo '::endgroup::'
 
     - name: Check out code
@@ -79,7 +79,7 @@ jobs:
         pack build -v test-container \
           --pull-policy if-not-present \
           --buildpack gcr.io/paketo-buildpacks/go-dist:0.2.5 \
-          --buildpack dev.local/http-go-fn:latest \
+          --buildpack docker://dev.local/http-go-fn:latest \
           --buildpack gcr.io/paketo-buildpacks/go-mod-vendor:0.0.169 \
           --buildpack gcr.io/paketo-buildpacks/go-build:0.1.2
         echo '::endgroup::'
