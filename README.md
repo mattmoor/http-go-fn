@@ -27,10 +27,8 @@ pack package-buildpack my-buildpack --config ./package.toml
 # e.g. ":v0.0.1"
 pack build -v test-container \
   --pull-policy if-not-present \
-  --buildpack gcr.io/paketo-buildpacks/go-dist:0.2.5 \
   --buildpack ghcr.io/mattmoor/http-go-fn:main \
-  --buildpack gcr.io/paketo-buildpacks/go-mod-vendor:0.0.169 \
-  --buildpack gcr.io/paketo-buildpacks/go-build:0.1.2
+  --buildpack gcr.io/paketo-buildpacks/go:0.2.7
 ```
 
 
