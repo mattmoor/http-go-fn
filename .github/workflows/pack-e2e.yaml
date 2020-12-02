@@ -78,10 +78,8 @@ jobs:
         echo '::group:: pack build'
         pack build -v test-container \
           --pull-policy if-not-present \
-          --buildpack gcr.io/paketo-buildpacks/go-dist:0.2.5 \
           --buildpack docker://dev.local/http-go-fn:latest \
-          --buildpack gcr.io/paketo-buildpacks/go-mod-vendor:0.0.169 \
-          --buildpack gcr.io/paketo-buildpacks/go-build:0.1.2
+          --buildpack gcr.io/paketo-buildpacks/go:0.2.7
         echo '::endgroup::'
 
         # Capture the container ID to stop it below and simulate shutdown.
